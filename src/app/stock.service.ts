@@ -41,6 +41,7 @@ export class StockService {
   }
 
   getUserPortfolio(): Observable<any> {
+    const token=localStorage.getItem('access_token')
     const url = `${this.apiUrl}/portfolio`;
     return this.http.get<any>(url, { headers: this.getAuthHeaders() });
   }
@@ -110,5 +111,8 @@ export class StockService {
       map(response=>response.timestamp),
       catchError(this.handleError<number>('getCurrentTimestamp'))
     );
+  }
+  getUserData():Observable<any>{
+    return this.http.get<any>(`${this.apiUrl}/portfolio`);
   }
 }

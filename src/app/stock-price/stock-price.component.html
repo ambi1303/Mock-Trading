@@ -28,49 +28,70 @@
       <tbody>
         <tr *ngFor="let symbol of stockKeys">
           <td>{{ symbol }}</td>
-          <td>{{ stockPrices[symbol] | currency }}</td>
+          <td>{{ stockPrices[symbol] | currency:'INR' }}</td>
           <td>
             <input type="number" #buyQuantity [value]="1" min="1">
             <button (click)="buyStock(symbol, +buyQuantity.value)">Buy</button>
           </td>
           <td>
             <input type="number" #sellQuantity [value]="1" min="1">
-            <button class="sell" (click)="sellStock(symbol, +sellQuantity.value)" [disabled]="!portfolio.stocks[symbol] || portfolio.stocks[symbol] <=0">Sell</button>
+            <button class="sell" (click)="sellStock(symbol, +sellQuantity.value)" [disabled]="!portfolio.stocks[symbol] || portfolio.stocks[symbol] <= 0">Sell</button>
           </td>
         </tr>
       </tbody>
     </table>
   </div>
 
-  <div *ngIf="portfolioItems.length > 0">
-    <h2>Your Portfolio</h2>
-    <div>
-      <p>Cash: {{ portfolio.cash | currency }}</p>
-      <p>Total Portfolio Value: {{ calculateTotalPortfolioValue() | currency }}</p>
-      <table class="table table-bordered">
-        <thead>
-          <tr>
-            <th>Symbol</th>
-            <th>Quantity</th>
-            <th>Current Price</th>
-            <th>Avg Price</th>
-            <th>Total Value</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let item of portfolioItems">
-            <td>{{ item.symbol }}</td>
-            <td>{{ item.quantity }}</td>
-            <td>{{ item.currentPrice | currency }}</td>
-            <td>{{ item.avgPrice | currency }}</td>
-            <td>{{ calculateStockValue(item) | currency }}</td>
-          </tr>
-        </tbody>
-      </table>
+  <div *ngIf="portfolioItems.length > 0" class="portfolio-container">
+    <h2>Holdings ({{ portfolioItems.length }})</h2>
+    <div class="portfolio-summary">
+        <div class="summary-row">
+            <div class="summary-item">
+                <p>Current</p>
+                <p class="value">₹{{ calculateTotalPortfolioValue() | number:'1.2-2' }}</p>
+            </div>
+            <div class="summary-item">
+                <p>Total returns</p>
+                <p class="value" [ngClass]="{'positive': calculateTotalReturns() >= 0, 'negative': calculateTotalReturns() < 0}">
+                    ₹{{ calculateTotalReturns() | number:'1.2-2' }} ({{ calculateTotalReturnsPercentage() }}%)
+                </p>
+            </div>
+        </div>
+        <div class="summary-row">
+            <div class="summary-item">
+                <p>Invested</p>
+                <p class="value">₹{{ calculateTotalInvested() | number:'1.2-2' }}</p>
+            </div>
+            <div class="summary-item">
+                <p>Cash</p>
+                <p class="value">₹{{ cashBalance | number:'1.2-2' }}</p>
+            </div>
+        </div>
     </div>
-  </div>
+    <div class="sort-options">
+        <span>Sort</span>
+        <span>Current (Invested)</span>
+    </div>
+    <div class="portfolio-items">
+        <div *ngFor="let item of portfolioItems" class="portfolio-item">
+            <div class="item-info">
+                <p class="stock-name">{{ item.symbol }}</p>
+                <p class="stock-quantity">{{ item.quantity }} shares</p>
+                <p class="stock-avg-price">Avg: ₹{{ item.avgPrice | number:'1.2-2' }}</p>
+            </div>
+            <div class="item-chart">
+                <!-- Add a placeholder for the chart -->
+                <div class="chart-placeholder"></div>
+            </div>
+            <div class="item-values">
+                <p class="current-value">₹{{ item.currentValue | number:'1.2-2' }}</p>
+                <p class="invested-value">(₹{{ item.invested | number:'1.2-2' }})</p>
+            </div>
+        </div>
+    </div>
+</div>
 
-  <div class="transaction-history" >
+  <div class="transaction-history" *ngIf="transactions.length > 0">
     <h2>Transaction History</h2>
     <table class="table table-bordered">
       <thead>
@@ -87,7 +108,7 @@
           <td>{{ transaction.type | titlecase }}</td>
           <td>{{ transaction.symbol }}</td>
           <td>{{ transaction.quantity }}</td>
-          <td>{{ transaction.price | currency }}</td>
+          <td>{{ transaction.price | currency:'INR' }}</td>
           <td>{{ formatDate(transaction.timestamp) }}</td>
         </tr>
       </tbody>
