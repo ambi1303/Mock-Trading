@@ -1,3 +1,5 @@
+#Introduction 
+This is the basic implementation of the mock trading where the prices are chaning in every 15 and are being fetch from the csv file and whole backend is made using the Flask
 # Test
 
 This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 18.1.0.
