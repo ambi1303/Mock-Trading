@@ -1,0 +1,23 @@
+<div class="transaction-history" *ngIf="transactions.length > 0">
+    <h2>Transaction History</h2>
+    <table class="table table-bordered">
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Symbol</th>
+          <th>Quantity</th>
+          <th>Price</th>
+          <th>Date</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let transaction of transactions">
+          <td>{{ transaction.type | titlecase }}</td>
+          <td>{{ transaction.symbol }}</td>
+          <td>{{ transaction.quantity }}</td>
+          <td>{{ transaction.price | currency:'INR' }}</td>
+          <td>{{ formatDate(transaction.timestamp) }}</td>
+        </tr>
+      </tbody>
+    </table>
+</div>

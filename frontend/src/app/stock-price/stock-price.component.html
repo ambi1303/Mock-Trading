@@ -1,0 +1,96 @@
+<div class="container">
+  <header>
+    <h1>Stock Trading App</h1>
+    <div class="user-info">
+      <span *ngIf="userIdentifier">Welcome, {{ userIdentifier }}</span>
+      <button mat-raised-button color="primary" (click)="openTransactionHistory()">Click for Transactions</button>
+      <button (click)="logout()" class="logout-btn">Logout</button>
+    </div>
+  </header>
+
+  <div *ngIf="errorMessage" class="alert alert-danger">
+    {{ errorMessage }}
+  </div>
+  <div *ngIf="successMessage" class="alert alert-success">
+    {{ successMessage }}
+  </div>
+
+  <div *ngIf="stockKeys.length > 0">
+    <h2>Stock Prices</h2>
+    <table class="table table-bordered">
+      <thead>
+        <tr>
+          <th>Symbol</th>
+          <th>Price</th>
+          <th>Buy</th>
+          <th>Sell</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let symbol of stockKeys">
+          <td>{{ symbol }}</td>
+          <td>{{ stockPrices[symbol] | currency:'INR' }}</td>
+          <td>
+            <input type="number" #buyQuantity [value]="1" min="1">
+            <button (click)="buyStock(symbol, +buyQuantity.value)">Buy</button>
+          </td>
+          <td>
+            <input type="number" #sellQuantity [value]="1" min="1">
+            <button class="sell" (click)="sellStock(symbol, +sellQuantity.value)" [disabled]="!portfolio.stocks[symbol] || portfolio.stocks[symbol] <= 0">Sell</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div *ngIf="portfolioItems.length > 0" class="portfolio-container">
+    <h2>Holdings ({{ portfolioItems.length }})</h2>
+    <div class="portfolio-summary">
+        <div class="summary-row">
+            <div class="summary-item">
+                <p>Current</p>
+                <p class="value">₹{{ calculateTotalPortfolioValue() | number:'1.2-2' }}</p>
+            </div>
+            <div class="summary-item">
+                <p>Total returns</p>
+                <p class="value" [ngClass]="{'positive': calculateTotalReturns() >= 0, 'negative': calculateTotalReturns() < 0}">
+                    ₹{{ calculateTotalReturns() | number:'1.2-2' }} ({{ calculateTotalReturnsPercentage() }}%)
+                </p>
+            </div>
+        </div>
+        <div class="summary-row">
+            <div class="summary-item">
+                <p>Invested</p>
+                <p class="value">₹{{ calculateTotalInvested() | number:'1.2-2' }}</p>
+            </div>
+            <div class="summary-item">
+                <p>Cash</p>
+                <p class="value">₹{{ cashBalance | number:'1.2-2' }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="sort-options">
+        <span>Sort</span>
+        <span>Current (Invested)</span>
+    </div>
+    <div class="portfolio-items">
+        <div *ngFor="let item of portfolioItems" class="portfolio-item">
+            <div class="item-info">
+                <p class="stock-name">{{ item.symbol }}</p>
+                <p class="stock-quantity">{{ item.quantity }} shares</p>
+                <p class="stock-avg-price">Avg: ₹{{ item.avgPrice | number:'1.2-2' }}</p>
+            </div>
+            <div class="item-chart">
+                <!-- Add a placeholder for the chart -->
+                <div class="chart-placeholder"></div>
+            </div>
+            <div class="item-values">
+                <p class="current-value">₹{{ item.currentValue | number:'1.2-2' }}</p>
+                <p class="invested-value">(₹{{ item.invested | number:'1.2-2' }})</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+  
