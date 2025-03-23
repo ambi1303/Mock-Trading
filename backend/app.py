@@ -1,16 +1,136 @@
 from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
-from werkzeug.security import generate_password_hash, check_password_hash
 from flask_cors import CORS
+from werkzeug.security import generate_password_hash, check_password_hash
 import time
 import csv
 import threading
 import json
 
+from config import Config
+from models import db, User, Portfolio  # Or define models inline if you prefer
 
-# Initialize the Flask application
 app = Flask(__name__)
+app.config.from_object(Config)
+
+db.init_app(app)
+jwt = JWTManager(app)
+
+CORS(app, resources={r"/api/*": {"origins": "*"}})
+
+STOCK_PRICES = []
+current_row_index = 0
+GLOBAL_TIMESTAMP = 0
+PRICE_UPDATE_INTERVAL = 15
+
+def read_stock_prices_from_csv():
+    global STOCK_PRICES
+    with open('test.csv', newline='') as csvfile:
+        reader = csv.DictReader(csvfile)
+        STOCK_PRICES = [row for row in reader]
+
+def update_stock_prices():
+    global current_row_index, GLOBAL_TIMESTAMP
+    while True:
+        current_time = time.time()
+        if current_time - GLOBAL_TIMESTAMP >= PRICE_UPDATE_INTERVAL:
+            read_stock_prices_from_csv()
+            current_row_index += 1
+            if current_row_index >= len(STOCK_PRICES):
+                current_row_index = 0
+            GLOBAL_TIMESTAMP = current_time
+        time.sleep(1)
+
+update_thread = threading.Thread(target=update_stock_prices, daemon=True)
+update_thread.start()
+
+@app.before_first_request
+def create_tables():
+    db.create_all()
+
+@app.route('/api/stock_prices', methods=['GET'])
+def get_stock_prices():
+    global STOCK_PRICES, current_row_index, GLOBAL_TIMESTAMP
+    return jsonify({
+        'prices': STOCK_PRICES[current_row_index] if STOCK_PRICES else {},
+        'timestamp': GLOBAL_TIMESTAMP
+    }), 200
+
+@app.route('/api/register', methods=['POST'])
+def register():
+    data = request.get_json()
+    username = data.get('username')
+    email = data.get('email')
+    password = data.get('password')
+
+    if User.query.filter_by(email=email).first():
+        return jsonify({'message': 'Email already exists'}), 409
+    if User.query.filter_by(username=username).first():
+        return jsonify({'message': 'Username already exists'}), 409
+
+    hashed_password = generate_password_hash(password, method='pbkdf2:sha256')
+    new_user = User(username=username, email=email, password=hashed_password)
+    db.session.add(new_user)
+    db.session.commit()
+
+    new_portfolio = Portfolio(user_id=new_user.id)
+    db.session.add(new_portfolio)
+    db.session.commit()
+
+    access_token = create_access_token(identity=new_user.id)
+    return jsonify({
+        'message': 'User registered successfully',
+        'access_token': access_token
+    }), 201
+
+@app.route('/api/login', methods=['POST'])
+def login():
+    data = request.get_json()
+    email = data.get('email')
+    password = data.get('password')
+
+    user = User.query.filter_by(email=email).first()
+    if not user or not check_password_hash(user.password, password):
+        return jsonify({'message': 'Invalid credentials'}), 401
+
+    access_token = create_access_token(identity=user.id)
+    return jsonify({'access_token': access_token}), 200
+
+@app.route('/api/portfolio', methods=['GET'])
+@jwt_required()
+def get_portfolio():
+    user_id = get_jwt_identity()
+    portfolio = Portfolio.query.filter_by(user_id=user_id).first()
+    if not portfolio:
+        return jsonify({'error': 'Portfolio not found'}), 404
+
+    stocks = portfolio.stocks if portfolio.stocks else {}
+    stock_purchases = portfolio.stock_purchases if portfolio.stock_purchases else {}
+    transactions = portfolio.transactions if portfolio.transactions else []
+
+    return jsonify({
+        'cash': portfolio.cash,
+        'stocks': stocks,
+        'stock_purchases': stock_purchases,
+        'transactions': transactions
+    }), 200
+
+@app.route('/api/buy', methods=['POST'])
+@jwt_required()
+def buy_stock():
+    # Similar logic as your original code...
+    pass
+
+@app.route('/api/sell', methods=['POST'])
+@jwt_required()
+def sell_stock():
+    # Similar logic as your original code...
+    pass
+
+if __name__ == '__main__':
+    app.run(debug=True)
+
 
 # Enable CORS for all routes
 CORS(app, resources={r"/api/*": {"origins": "http://localhost:4200"}})

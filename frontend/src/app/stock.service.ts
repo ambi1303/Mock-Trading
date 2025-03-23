@@ -7,7 +7,7 @@ import { catchError, map } from 'rxjs/operators';
   providedIn: 'root'
 })
 export class StockService {
-  private apiUrl = 'http://localhost:8000/api';  // Adjust as needed
+  private apiUrl = 'http://localhost:5000/api';  // Adjust as needed
   private tokenKey = 'access_token';
 
   constructor(private http: HttpClient) { }
