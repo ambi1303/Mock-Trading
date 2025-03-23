@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { Router, RouterOutlet } from '@angular/router';
+import { Router, RouterModule, RouterOutlet } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { StockPriceComponent } from './stock-price/stock-price.component';
@@ -9,7 +9,7 @@ import { TransactionHistoryComponent } from './transaction-history/transaction-h
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, CommonModule, FormsModule, StockPriceComponent,LoginComponent,TransactionHistoryComponent],
+  imports: [RouterOutlet, CommonModule, FormsModule, StockPriceComponent,LoginComponent,TransactionHistoryComponent,RouterModule],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css'
 })

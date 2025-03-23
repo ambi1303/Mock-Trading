@@ -11,13 +11,14 @@ import { AppRoutingModule } from './app-routing.module';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatButtonModule } from '@angular/material/button';
+import { RouterModule } from '@angular/router';
 
 
 @NgModule({
   declarations: [],
   imports: [
     BrowserModule,
-    AppRoutingModule,
+    AppRoutingModule,RouterModule,
     FormsModule,
     HttpClientModule, AppComponent,
     LoginComponent,
